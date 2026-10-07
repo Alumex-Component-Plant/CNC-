@@ -3,112 +3,85 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#07111f">
+<meta name="theme-color" content="#071426">
 <meta name="description" content="ALUMEX PLC CNC 5000 Industrial OEE and Production Intelligence System">
 <title>ALUMEX PLC | CNC 5000 OEE</title>
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
 <link rel="stylesheet" href="style.css">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-<div id="boot" class="boot"><div class="boot-box"><div class="spinner"></div><div><b>CNC 5000</b><span>Connecting to operations database…</span></div></div></div>
-<div id="toast" class="toast"></div>
+<div id="boot" class="boot"><div class="boot-card"><span class="spinner"></span><div><strong>CNC 5000</strong><small>Loading operations system…</small></div></div></div>
 <header class="topbar">
-  <div class="brand"><div class="machine-badge">5K</div><div><div class="brand-title">CNC 5000</div><div class="brand-sub">ALUMEX PLC <i>•</i> Component Plant</div></div></div>
+  <div class="brand"><div class="machine-badge">5K</div><div><div class="brand-title">CNC 5000</div><div class="brand-sub">ALUMEX PLC <span>•</span> Component Plant</div></div></div>
   <div class="top-actions"><span id="status" class="status connecting"><i></i>Connecting</span><button id="theme" class="icon-btn" aria-label="Toggle theme">☾</button></div>
 </header>
 <div class="app-shell">
   <aside class="sidebar">
-    <div class="nav-caption">OPERATIONS</div>
-    <button class="navbtn active" data-tab="dashboard"><span>▦</span> Dashboard</button>
-    <button class="navbtn" data-tab="machine"><span>◈</span> Machine</button>
-    <button class="navbtn" data-tab="shifts"><span>◒</span> OEE & Shifts</button>
-    <button class="navbtn" data-tab="production"><span>▤</span> Production</button>
-    <button class="navbtn" data-tab="downtime"><span>◴</span> Downtime</button>
-    <div class="nav-caption">CONTROL</div>
-    <button class="navbtn" data-tab="profiles"><span>⚙</span> CNC Profiles</button>
-    <button class="navbtn" data-tab="tools"><span>◇</span> Tool Inventory</button>
-    <button class="navbtn" data-tab="reports"><span>▥</span> Reports</button>
-    <button class="navbtn" data-tab="recovery"><span>↺</span> Recovery</button>
-    <button class="navbtn" data-tab="setup"><span>⌘</span> Setup</button>
-    <div class="sidebar-foot"><b>OEE SYSTEM</b><span>Industrial operations control</span></div>
+    <div class="nav-caption">CONTROL CENTER</div>
+    <button class="navbtn active" data-tab="dashboard">▦ <span>Dashboard</span></button>
+    <button class="navbtn" data-tab="machine">◈ <span>Machine</span></button>
+    <button class="navbtn" data-tab="operations">◒ <span>Operations</span></button>
+    <button class="navbtn" data-tab="tools">⚙ <span>Tools & Master Data</span></button>
+    <button class="navbtn" data-tab="reports">▥ <span>Reports</span></button>
+    <div class="sidebar-foot"><b>INDUSTRIAL OEE</b><span>Shift • Production • Loss • Tool Control</span></div>
   </aside>
   <main class="main">
-    <div class="mobile-nav"><select id="mobileTab"><option value="dashboard">Dashboard</option><option value="machine">Machine</option><option value="shifts">OEE & Shifts</option><option value="production">Production</option><option value="downtime">Downtime</option><option value="profiles">CNC Profiles</option><option value="tools">Tool Inventory</option><option value="reports">Reports</option><option value="recovery">Recovery</option><option value="setup">Setup</option></select></div>
+    <div class="mobile-nav"><select id="mobileTab"><option value="dashboard">Dashboard</option><option value="machine">Machine</option><option value="operations">Operations</option><option value="tools">Tools & Master Data</option><option value="reports">Reports</option></select></div>
 
     <section id="dashboard" class="tab">
-      <div class="page-head"><div><div class="eyebrow">OPERATIONS INTELLIGENCE</div><h1>Production Dashboard</h1><p>Real-time OEE view for CNC 5000 manufacturing operations.</p></div><button class="primary" onclick="openShift()">＋ Record Shift</button></div>
+      <div class="page-head"><div><div class="eyebrow">CONTROL CENTER</div><h1>Production Dashboard</h1><p>Weighted OEE and operating status for CNC 5000.</p></div><button class="primary" onclick="openShift()">＋ Record Shift</button></div>
       <div class="kpi-grid">
         <article class="kpi-card accent-green"><div class="kpi-label">PLANT OEE</div><div id="kOee" class="kpi-value">0.0%</div><div id="kApq" class="kpi-meta">A 0.0% · P 0.0% · Q 0.0%</div></article>
         <article class="kpi-card accent-blue"><div class="kpi-label">GOOD OUTPUT</div><div id="kOutput" class="kpi-value">0</div><div id="kGood" class="kpi-meta">Total 0 · Scrap 0</div></article>
-        <article class="kpi-card accent-cyan"><div class="kpi-label">ACTIVE SHIFTS</div><div id="kShifts" class="kpi-value">0</div><div class="kpi-meta">Recorded production shifts</div></article>
-        <article class="kpi-card accent-red"><div class="kpi-label">DOWNTIME</div><div id="kDown" class="kpi-value">0m</div><div class="kpi-meta">Recorded machine downtime</div></article>
-        <article class="kpi-card accent-amber"><div class="kpi-label">TOOL ALERTS</div><div id="kTools" class="kpi-value">0</div><div class="kpi-meta">At / below minimum stock</div></article>
+        <article class="kpi-card accent-cyan"><div class="kpi-label">RECORDED SHIFTS</div><div id="kShifts" class="kpi-value">0</div><div class="kpi-meta">CNC 5000 shift records</div></article>
+        <article class="kpi-card accent-red"><div class="kpi-label">DOWNTIME</div><div id="kDown" class="kpi-value">0m</div><div class="kpi-meta">Recorded machine loss</div></article>
+        <article class="kpi-card accent-amber"><div class="kpi-label">CRITICAL TOOLS</div><div id="kTools" class="kpi-value">0</div><div class="kpi-meta">Stock below 3 pcs</div></article>
       </div>
-      <div class="grid-2">
-        <article class="panel chart-panel"><div class="panel-head"><div><h2>OEE Trend</h2><span>Last 14 production dates</span></div><span class="chip blue">OEE</span></div><div class="chart-box"><canvas id="oeeChart"></canvas><div id="oeeEmpty" class="chart-empty">No shift data available yet.</div></div></article>
-        <article class="panel chart-panel"><div class="panel-head"><div><h2>Good Production</h2><span>Daily accepted output</span></div><span class="chip green">GOOD PCS</span></div><div class="chart-box"><canvas id="prodChart"></canvas><div id="prodEmpty" class="chart-empty">No production data available yet.</div></div></article>
-      </div>
-      <div class="grid-2 lower-grid">
-        <article class="panel"><div class="panel-head"><div><h2>OEE Components</h2><span>Weighted plant calculation</span></div></div><div class="component-bars"><div><div><b>Availability</b><span id="barA">0%</span></div><i><em id="barAFill"></em></i></div><div><div><b>Performance</b><span id="barP">0%</span></div><i><em id="barPFill"></em></i></div><div><div><b>Quality</b><span id="barQ">0%</span></div><i><em id="barQFill"></em></i></div></div></article>
-        <article class="panel"><div class="panel-head"><div><h2>Recent Shifts</h2><span>Latest recorded activity</span></div><button class="link-btn" onclick="tab('shifts')">View all →</button></div><div class="table-wrap"><table><thead><tr><th>Date</th><th>Shift</th><th>Team</th><th>Output</th><th>Scrap</th><th>OEE</th></tr></thead><tbody id="recent"></tbody></table></div></article>
-      </div>
+      <div class="grid-2"><article class="panel chart-panel"><div class="panel-head"><div><h2>OEE Trend</h2><span>Recent production dates</span></div><span class="chip blue">OEE</span></div><div class="chart-box"><canvas id="oeeChart"></canvas><div id="oeeEmpty" class="chart-empty">No shift data available.</div></div></article><article class="panel chart-panel"><div class="panel-head"><div><h2>Good Production</h2><span>Accepted output by date</span></div><span class="chip green">GOOD PCS</span></div><div class="chart-box"><canvas id="prodChart"></canvas><div id="prodEmpty" class="chart-empty">No production data available.</div></div></article></div>
+      <div class="grid-2 lower-grid"><article class="panel"><div class="panel-head"><div><h2>OEE Components</h2><span>Weighted calculation</span></div></div><div class="component-bars"><div><div><b>Availability</b><span id="barA">0%</span></div><i><em id="barAFill"></em></i></div><div><div><b>Performance</b><span id="barP">0%</span></div><i><em id="barPFill"></em></i></div><div><div><b>Quality</b><span id="barQ">0%</span></div><i><em id="barQFill"></em></i></div></div></article><article class="panel"><div class="panel-head"><div><h2>Critical Tool Alerts</h2><span>Stock below 3 pieces</span></div><button class="link-btn" onclick="tab('tools')">Open tools →</button></div><div id="criticalTools" class="alert-list"></div></article></div>
+      <article class="panel"><div class="panel-head"><div><h2>Recent Shifts</h2><span>Latest recorded activity</span></div><button class="link-btn" onclick="tab('operations');operationView('oee')">View OEE →</button></div><div class="table-wrap"><table><thead><tr><th>Date</th><th>Shift</th><th>Team</th><th>Output</th><th>Scrap</th><th>OEE</th></tr></thead><tbody id="recent"></tbody></table></div></article>
     </section>
 
     <section id="machine" class="tab hidden">
-      <div class="page-head"><div><div class="eyebrow">CNC ASSET</div><h1>Machine Overview</h1><p>CNC 5000 operating context and production control.</p></div><span class="machine-state"><i></i> System online</span></div>
-      <div class="machine-grid">
-        <article class="panel machine-hero"><div class="machine-illustration"><div class="cnc-top"></div><div class="cnc-door"><div class="window"></div><div class="table-line"></div></div><div class="cnc-base"></div></div><div class="machine-copy"><span class="chip green">CONNECTED DATABASE</span><h2>ALUMEX CNC 5000</h2><p>Vertical CNC production asset for component machining. This screen separates confirmed database information from live machine telemetry that has not yet been connected.</p><div class="spec-grid"><div><span>Asset</span><b>CNC 5000</b></div><div><span>Plant</span><b>Component Plant</b></div><div><span>Shift model</span><b>12 h / 630 min</b></div><div><span>Database</span><b>Supabase PostgreSQL</b></div></div></div></article>
-        <article class="panel"><div class="panel-head"><div><h2>Machine Control Data</h2><span>Ready for CNC/PLC integration</span></div></div><div class="telemetry-grid"><div><span>Machine state</span><b>DATABASE ONLINE</b></div><div><span>Program / Profile</span><b id="machineProfile">—</b></div><div><span>Last production</span><b id="machineLast">—</b></div><div><span>Current shift</span><b id="machineShift">—</b></div><div><span>Operating time</span><b id="machineOperating">0 min</b></div><div><span>Downtime</span><b id="machineDowntime">0 min</b></div></div><div class="notice"><b>Telemetry integration point</b><span>Connect CNC/PLC signals through the deployed Edge Function when machine-side data is available. No fake live values are shown here.</span></div></article>
-      </div>
+      <div class="page-head"><div><div class="eyebrow">CNC ASSET</div><h1>Machine Overview</h1><p>Confirmed database status and the current operating context. No fake telemetry.</p></div><span class="machine-state"><i></i> Database online</span></div>
+      <div class="machine-grid"><article class="panel machine-hero"><div class="machine-illustration"><div class="cnc-top"></div><div class="cnc-door"><div class="window"></div><div class="table-line"></div></div><div class="cnc-base"></div></div><div class="machine-copy"><span class="chip green">CNC 5000</span><h2>ALUMEX COMPONENT PLANT</h2><p>Vertical CNC production asset. The application is ready to receive machine/PLC data through the deployed webhook when the machine-side source is connected.</p><div class="spec-grid"><div><span>Shift model</span><b>06:00–18:00 / 18:00–06:00</b></div><div><span>Planned time</span><b>630 min / shift</b></div><div><span>Planned breaks</span><b>90 min / shift</b></div><div><span>Data source</span><b>Supabase PostgreSQL</b></div></div></div></article><article class="panel"><div class="panel-head"><div><h2>Current Operating Context</h2><span>Latest recorded CNC data</span></div></div><div class="telemetry-grid"><div><span>Latest shift</span><b id="machineShift">—</b></div><div><span>Latest profile</span><b id="machineProfile">—</b></div><div><span>Latest output</span><b id="machineLast">0 pcs</b></div><div><span>Operating time</span><b id="machineOperating">0 min</b></div><div><span>Downtime</span><b id="machineDowntime">0 min</b></div><div><span>Latest OEE</span><b id="machineOee">0.0%</b></div></div><div class="notice"><b>Machine integration</b><span>Use the deployed <code>/functions/v1/cnc-webhook</code> endpoint for authenticated machine-side shift, production and downtime payloads. This interface deliberately does not invent live CNC values.</span></div></article></div>
     </section>
 
-    <section id="shifts" class="tab hidden">
-      <div class="page-head"><div><div class="eyebrow">PERFORMANCE</div><h1>OEE & Shift Logs</h1><p>Weighted plant OEE. Availability, Performance and Quality are calculated from shift data.</p></div><button class="primary" onclick="openShift()">＋ Add Shift</button></div>
-      <article class="panel"><div class="filter-grid"><input id="shiftSearch" class="input" placeholder="Search date, team or operator" oninput="renderShifts()"><select id="shiftFilter" class="input" onchange="renderShifts()"><option value="ALL">All shifts</option><option>Day</option><option>Night</option></select><input id="fromDate" type="date" class="input" onchange="renderShifts()"><input id="toDate" type="date" class="input" onchange="renderShifts()"></div><div class="table-wrap"><table><thead><tr><th>Date</th><th>Shift</th><th>Team</th><th>Planned</th><th>Operating</th><th>Output</th><th>Good</th><th>Scrap</th><th>Down</th><th>OEE</th><th>Action</th></tr></thead><tbody id="shiftRows"></tbody></table></div></article>
-    </section>
-
-    <section id="production" class="tab hidden">
-      <div class="page-head"><div><div class="eyebrow">OUTPUT CONTROL</div><h1>Production Records</h1><p>Profile-level production linked to each CNC shift.</p></div><button class="primary" onclick="openShift()">＋ Record Production</button></div>
-      <article class="panel"><div class="summary-strip"><div><span>Total records</span><b id="prodCount">0</b></div><div><span>Total produced</span><b id="prodTotal">0</b></div><div><span>Good parts</span><b id="prodGood">0</b></div><div><span>Scrap</span><b id="prodScrap">0</b></div></div><div class="table-wrap"><table><thead><tr><th>Date</th><th>Shift</th><th>Profile</th><th>Produced</th><th>Reject</th><th>Good</th></tr></thead><tbody id="prodRows"></tbody></table></div></article>
-    </section>
-
-    <section id="downtime" class="tab hidden">
-      <div class="page-head"><div><div class="eyebrow">LOSS ANALYSIS</div><h1>Downtime Analysis</h1><p>Machine losses recorded against CNC 5000 shifts.</p></div></div>
-      <div class="grid-2"><article class="panel chart-panel"><div class="panel-head"><div><h2>Downtime by Reason</h2><span>Minutes recorded in database</span></div></div><div class="chart-box"><canvas id="downChart"></canvas><div id="downEmpty" class="chart-empty">No downtime records available.</div></div></article><article class="panel"><div class="panel-head"><div><h2>Downtime Log</h2><span>Latest events</span></div></div><div class="table-wrap"><table><thead><tr><th>Date</th><th>Shift</th><th>Reason</th><th>Minutes</th></tr></thead><tbody id="downRows"></tbody></table></div></article></div>
-    </section>
-
-    <section id="profiles" class="tab hidden">
-      <div class="page-head"><div><div class="eyebrow">MASTER DATA</div><h1>CNC Profiles</h1><p>Cycle-time and tooling master data for CNC 5000 OEE calculations.</p></div><button class="primary" onclick="openProfile()">＋ Add Profile</button></div>
-      <article class="panel"><input id="profileSearch" class="input search" placeholder="Search profile or description" oninput="renderProfiles()"><div class="table-wrap"><table><thead><tr><th>Profile</th><th>Description</th><th>Cycle</th><th>Feed / Speed</th><th>Tooling</th><th>Action</th></tr></thead><tbody id="profileRows"></tbody></table></div></article>
+    <section id="operations" class="tab hidden">
+      <div class="page-head"><div><div class="eyebrow">OPERATIONS</div><h1>OEE, Production & Losses</h1><p>One operating workspace for shift performance, output and downtime.</p></div><button id="operationAction" class="primary" onclick="openShift()">＋ Add Shift</button></div>
+      <div class="subnav"><button class="subnav-btn active" data-view="oee" onclick="operationView('oee')">OEE & Shifts</button><button class="subnav-btn" data-view="production" onclick="operationView('production')">Production</button><button class="subnav-btn" data-view="downtime" onclick="operationView('downtime')">Downtime</button></div>
+      <div id="op-oee" class="op-view"><article class="panel"><div class="filter-grid"><input id="shiftSearch" class="input" placeholder="Search date, team or operator" oninput="renderShifts()"><select id="shiftFilter" class="input" onchange="renderShifts()"><option value="ALL">All shifts</option><option>Day</option><option>Night</option></select><input id="fromDate" type="date" class="input" onchange="renderShifts()"><input id="toDate" type="date" class="input" onchange="renderShifts()"></div><div class="table-wrap"><table><thead><tr><th>Date</th><th>Shift</th><th>Team</th><th>Planned</th><th>Operating</th><th>Output</th><th>Good</th><th>Scrap</th><th>Down</th><th>OEE</th><th>Action</th></tr></thead><tbody id="shiftRows"></tbody></table></div></article></div>
+      <div id="op-production" class="op-view hidden"><div class="summary-strip"><div><span>Records</span><b id="prodCount">0</b></div><div><span>Produced</span><b id="prodTotal">0</b></div><div><span>Good parts</span><b id="prodGood">0</b></div><div><span>Scrap</span><b id="prodScrap">0</b></div></div><article class="panel"><div class="panel-head"><div><h2>Production Log</h2><span>Profile-level records linked to shifts</span></div><button class="primary" onclick="openProduction()">＋ Add Production</button></div><div class="table-wrap"><table><thead><tr><th>Date</th><th>Shift</th><th>Profile</th><th>Produced</th><th>Reject</th><th>Good</th><th>Recorded</th></tr></thead><tbody id="prodRows"></tbody></table></div></article></div>
+      <div id="op-downtime" class="op-view hidden"><div class="grid-2"><article class="panel chart-panel"><div class="panel-head"><div><h2>Downtime by Reason</h2><span>Minutes recorded in database</span></div></div><div class="chart-box"><canvas id="downChart"></canvas><div id="downEmpty" class="chart-empty">No downtime records.</div></div></article><article class="panel"><div class="panel-head"><div><h2>Downtime Log</h2><span>Latest machine losses</span></div><button class="primary" onclick="openDowntime()">＋ Add Loss</button></div><div class="table-wrap"><table><thead><tr><th>Date</th><th>Shift</th><th>Reason</th><th>Minutes</th><th>Notes</th></tr></thead><tbody id="downRows"></tbody></table></div></article></div></div>
     </section>
 
     <section id="tools" class="tab hidden">
-      <div class="page-head"><div><div class="eyebrow">TOOL CONTROL</div><h1>Tool Inventory</h1><p>Stock visibility, minimum levels and replenishment control.</p></div><button class="primary" onclick="openTool()">＋ Add Tool</button></div>
-      <article class="panel"><div class="filter-grid tools-filter"><input id="toolSearch" class="input" placeholder="Search tool, diameter or location" oninput="renderTools()"><select id="toolCat" class="input" onchange="renderTools()"><option value="ALL">All categories</option><option>End Mill</option><option>Ball Nose End Mill</option><option>Drill Bit</option><option>Tap Bit</option><option>Chamfer Tool</option><option>Face Mill</option></select><button onclick="createRequisition()" class="secondary">Create Restock Requisition</button></div><div class="table-wrap"><table><thead><tr><th>Category</th><th>Size</th><th>Description</th><th>Stock</th><th>Minimum</th><th>Location</th><th>Action</th></tr></thead><tbody id="toolRows"></tbody></table></div></article>
+      <div class="page-head"><div><div class="eyebrow">TOOL CONTROL</div><h1>Tools & Master Data</h1><p>Tool stock, critical alerts, CNC profiles and replenishment in one place.</p></div><button class="primary" onclick="openTool()">＋ Add Tool</button></div>
+      <div class="tool-summary"><div class="summary-card critical"><span>Critical &lt; 3</span><b id="toolCriticalCount">0</b></div><div class="summary-card"><span>Below minimum</span><b id="toolMinCount">0</b></div><div class="summary-card"><span>Total tools</span><b id="toolTotalCount">0</b></div><div class="summary-card"><span>Open requisitions</span><b id="reqCount">0</b></div></div>
+      <div class="subnav"><button class="subnav-btn active" data-toolview="inventory" onclick="toolView('inventory')">Inventory</button><button class="subnav-btn" data-toolview="profiles" onclick="toolView('profiles')">CNC Profiles</button><button class="subnav-btn" data-toolview="requisitions" onclick="toolView('requisitions')">Restock</button></div>
+      <div id="tool-inventory" class="tool-view"><article class="panel"><div class="filter-grid tools-filter"><input id="toolSearch" class="input" placeholder="Search tool, size or location" oninput="renderTools()"><select id="toolCat" class="input" onchange="renderTools()"><option value="ALL">All categories</option><option>End Mill</option><option>Ball Nose End Mill</option><option>Drill Bit</option><option>Tap Bit</option><option>Chamfer Tool</option><option>Face Mill</option></select><button onclick="createRequisition()" class="secondary">Create Restock Requisition</button></div><div id="stockAlert" class="stock-alert hidden"></div><div class="table-wrap"><table><thead><tr><th>Tool</th><th>Size</th><th>Description</th><th>Stock</th><th>Minimum</th><th>Location</th><th>Action</th></tr></thead><tbody id="toolRows"></tbody></table></div></article></div>
+      <div id="tool-profiles" class="tool-view hidden"><article class="panel"><div class="panel-head"><div><h2>CNC Profile Master</h2><span>Cycle-time data used for performance calculation</span></div><button class="primary" onclick="openProfile()">＋ Add Profile</button></div><input id="profileSearch" class="input search" placeholder="Search profile or description" oninput="renderProfiles()"><div class="table-wrap"><table><thead><tr><th>Profile</th><th>Description</th><th>Cycle</th><th>Feed / Speed</th><th>Tooling</th><th>Action</th></tr></thead><tbody id="profileRows"></tbody></table></div></article></div>
+      <div id="tool-requisitions" class="tool-view hidden"><div class="grid-2"><article class="panel"><div class="panel-head"><div><h2>Low Stock Report</h2><span>Every tool with stock below 3 pieces</span></div><button class="primary" onclick="createRequisition()">＋ Requisition</button></div><div id="lowStockReport" class="alert-list"></div></article><article class="panel"><div class="panel-head"><div><h2>Requisition History</h2><span>Recent replenishment requests</span></div></div><div id="requisitionList" class="stack"></div></article></div></div>
+      <article class="panel recovery-panel"><div class="panel-head"><div><h2>Recovery</h2><span>Soft-deleted master records can be restored without touching production history.</span></div></div><div class="recovery-grid"><div><h3>Profiles</h3><div id="trashProfiles" class="stack"></div></div><div><h3>Tools</h3><div id="trashTools" class="stack"></div></div><div><h3>Shifts</h3><div id="trashShifts" class="stack"></div></div></div></article>
     </section>
 
     <section id="reports" class="tab hidden">
-      <div class="page-head"><div><div class="eyebrow">DOCUMENTATION</div><h1>Reports & Export</h1><p>Generate production-ready operational reports from the current database.</p></div></div>
-      <article class="panel report-grid"><button class="report-card excel" onclick="exportExcel()"><b>▣ Excel</b><span>Shift OEE, profiles and tool inventory</span></button><button class="report-card pdf" onclick="exportPDF()"><b>▤ PDF</b><span>Management-ready OEE shift report</span></button><button class="report-card print" onclick="printReport()"><b>▥ Print</b><span>Print the current operational report</span></button></article>
-      <article class="panel report-notes"><h2>OEE reporting standard</h2><p>Plant OEE is calculated from aggregated time, production and quality values rather than averaging individual shift OEE percentages.</p><div class="formula-grid"><div><b>Availability</b><span>Operating ÷ Planned</span></div><div><b>Performance</b><span>Ideal cycle × output ÷ Operating time</span></div><div><b>Quality</b><span>Good ÷ Total output</span></div><div><b>OEE</b><span>Availability × Performance × Quality</span></div></div></article>
-    </section>
-
-    <section id="recovery" class="tab hidden">
-      <div class="page-head"><div><div class="eyebrow">DATA RECOVERY</div><h1>Recovery Vault</h1><p>Soft-deleted profiles, tools and shifts remain recoverable.</p></div></div>
-      <article class="panel"><div class="recovery-grid"><div><h3>Profiles</h3><div id="trashProfiles" class="stack"></div></div><div><h3>Tools</h3><div id="trashTools" class="stack"></div></div><div><h3>Shifts</h3><div id="trashShifts" class="stack"></div></div></div></article>
-    </section>
-
-    <section id="setup" class="tab hidden">
-      <div class="page-head"><div><div class="eyebrow">SYSTEM</div><h1>Setup & Integration</h1><p>Connection information and deployment notes.</p></div></div>
-      <article class="panel"><div class="connection-grid"><div><span>PROJECT</span><b>embgwbcdiscfnsjsceei</b></div><div><span>URL</span><b>https://embgwbcdiscfnsjsceei.supabase.co</b></div></div><div class="notice warning"><b>Security</b><span>The browser uses only the Supabase publishable key. Never place the PostgreSQL password or service-role key in frontend files.</span></div><pre>supabase login
+      <div class="page-head"><div><div class="eyebrow">MANAGEMENT REPORTING</div><h1>Reports & System</h1><p>Operational reports, OEE standard and system integration details.</p></div></div>
+      <article class="panel report-grid"><button class="report-card excel" onclick="exportExcel()"><b>▣ Excel Report</b><span>OEE, shifts, production, downtime, profiles and tools</span></button><button class="report-card pdf" onclick="exportPDF()"><b>▤ PDF Report</b><span>Management-ready CNC 5000 operations summary</span></button><button class="report-card print" onclick="printReport()"><b>▥ Print</b><span>Print the current management report</span></button></article>
+      <div class="grid-2 report-lower"><article class="panel"><div class="panel-head"><div><h2>OEE Reporting Standard</h2><span>Weighted plant calculation</span></div></div><div class="formula-grid"><div><b>Availability</b><span>Operating ÷ Planned</span></div><div><b>Performance</b><span>Ideal cycle × output ÷ Operating time</span></div><div><b>Quality</b><span>Good ÷ Total output</span></div><div><b>OEE</b><span>Availability × Performance × Quality</span></div></div><div class="report-note">Performance above 100% is retained as a data-quality signal. OEE uses capped performance so one abnormal cycle-time record cannot inflate OEE.</div></article><article class="panel"><div class="panel-head"><div><h2>System & Integration</h2><span>Current project configuration</span></div></div><div class="connection-grid"><div><span>PROJECT</span><b>embgwbcdiscfnsjsceei</b></div><div><span>DATABASE</span><b>Supabase PostgreSQL</b></div><div><span>SHIFT MODEL</span><b>Day 06:00–18:00 / Night 18:00–06:00</b></div><div><span>PLANNED TIME</span><b>630 min / shift</b></div></div><div class="notice warning"><b>Frontend security</b><span>Only the publishable Supabase key belongs in browser code. PostgreSQL passwords and service-role keys must stay server-side.</span></div><details class="integration-details"><summary>Deployment / webhook details</summary><pre>supabase login
 supabase init
 supabase link --project-ref embgwbcdiscfnsjsceei
 supabase functions deploy cnc-webhook
-supabase secrets set CNC_WEBHOOK_SECRET="YOUR_LONG_RANDOM_SECRET"</pre><div class="setup-grid"><div><b>Shift model</b><span>Day 06:00–18:00 / Night 18:00–06:00</span></div><div><b>Planned break</b><span>90 minutes per shift</span></div><div><b>Planned production time</b><span>630 minutes per shift</span></div><div><b>Webhook</b><span>/functions/v1/cnc-webhook</span></div></div></article>
+supabase secrets set CNC_WEBHOOK_SECRET="YOUR_LONG_RANDOM_SECRET"
+
+/functions/v1/cnc-webhook</pre></details></article></div>
     </section>
   </main>
 </div>
-<div id="modal" class="modal hidden"><div class="modal-card"><div class="modal-head"><h2 id="modalTitle">Form</h2><button onclick="closeModal()">×</button></div><div id="modalBody"></div></div></div>
+<div id="modal" class="modal hidden"><div class="modal-card"><div class="modal-head"><h2 id="modalTitle">Form</h2><button onclick="closeModal()" aria-label="Close">×</button></div><div id="modalBody" class="modal-body"></div></div></div>
+<div id="toast" class="toast"></div>
 <script src="app.js" defer></script>
 </body>
 </html>

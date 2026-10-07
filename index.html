@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en" class="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ALUMEX PLC | CNC 5000 Operations Intelligence</title>
+<meta name="theme-color" content="#0f172a">
+<meta name="description" content="ALUMEX PLC CNC 5000 Operations Intelligence, OEE, production, tools and reporting system">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<script>tailwind={config:{darkMode:"class"}}</script>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+<link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 min-h-screen">
+<div id="appLoading" class="fixed inset-0 z-[90] hidden items-center justify-center bg-slate-950/40 backdrop-blur-sm"><div class="bg-white dark:bg-slate-900 rounded-2xl px-5 py-4 shadow-2xl flex items-center gap-3 text-sm font-bold"><span class="animate-spin w-5 h-5 rounded-full border-2 border-slate-300 border-t-blue-600"></span><span>Loading CNC 5000 data...</span></div></div>
+<div id="toast" class="fixed z-[100] right-4 bottom-4 translate-y-24 opacity-0 toast px-4 py-3 rounded-xl shadow-2xl text-sm font-bold text-white bg-emerald-600">Saved</div>
+
+<header class="sticky top-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-b border-slate-200 dark:border-slate-800">
+<div class="max-w-[1500px] mx-auto px-4 py-3 flex justify-between items-center gap-3">
+  <div class="flex items-center gap-3">
+    <div class="w-11 h-11 rounded-xl bg-slate-900 text-white flex items-center justify-center font-black">5K</div>
+    <div><h1 class="font-black text-base">CNC 5000</h1><p class="text-[11px] text-blue-600 font-bold">ALUMEX PLC • Component Plant</p></div>
+  </div>
+  <div class="flex items-center gap-2">
+    <span id="status" class="px-3 py-1.5 rounded-full bg-amber-50 text-amber-700 text-xs font-bold"><span class="status-dot"></span>Connecting...</span>
+    <button id="theme" class="px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-800">🌙</button>
+  </div>
+</div>
+</header>
+
+<div class="max-w-[1500px] mx-auto p-4">
+<nav class="nav-scroll flex gap-2 mb-5 pb-1">
+<button class="navbtn active px-3 py-3 rounded-xl text-xs font-black" data-tab="dashboard">📊 Dashboard</button>
+<button class="navbtn px-3 py-3 rounded-xl text-xs font-black" data-tab="shifts">⚡ OEE & Shifts</button>
+<button class="navbtn px-3 py-3 rounded-xl text-xs font-black" data-tab="production">📋 Production</button>
+<button class="navbtn px-3 py-3 rounded-xl text-xs font-black" data-tab="profiles">⚙ Profiles</button>
+<button class="navbtn px-3 py-3 rounded-xl text-xs font-black" data-tab="tools">🛠 Tools</button>
+<button class="navbtn px-3 py-3 rounded-xl text-xs font-black" data-tab="reports">📑 Reports</button>
+<button class="navbtn px-3 py-3 rounded-xl text-xs font-black" data-tab="recovery">🗑 Recovery</button>
+<button class="navbtn px-3 py-3 rounded-xl text-xs font-black" data-tab="setup">🔗 Setup</button>
+</nav>
+
+<section id="dashboard" class="tab space-y-5">
+<div class="grid grid-cols-2 lg:grid-cols-5 gap-3">
+<div class="card p-4 kpi"><p class="text-[10px] font-black text-slate-400 uppercase">Plant OEE</p><p id="kOee" class="text-3xl font-black text-emerald-600 mt-1">0.0%</p><p id="kApq" class="text-[10px] text-slate-500 mt-1">A - | P - | Q -</p></div>
+<div class="card p-4 kpi"><p class="text-[10px] font-black text-slate-400 uppercase">Total Output</p><p id="kOutput" class="text-3xl font-black text-blue-600 mt-1">0</p><p id="kGood" class="text-[10px] text-slate-500 mt-1">Good 0 • Scrap 0</p></div>
+<div class="card p-4 kpi"><p class="text-[10px] font-black text-slate-400 uppercase">Shifts</p><p id="kShifts" class="text-3xl font-black mt-1">0</p><p class="text-[10px] text-slate-500 mt-1">Active records</p></div>
+<div class="card p-4 kpi"><p class="text-[10px] font-black text-slate-400 uppercase">Downtime</p><p id="kDown" class="text-3xl font-black text-rose-600 mt-1">0m</p><p class="text-[10px] text-slate-500 mt-1">Recorded downtime</p></div>
+<div class="card p-4 kpi"><p class="text-[10px] font-black text-slate-400 uppercase">Critical Tools</p><p id="kTools" class="text-3xl font-black text-amber-600 mt-1">0</p><p class="text-[10px] text-slate-500 mt-1">At/below minimum stock</p></div>
+</div>
+<div class="grid lg:grid-cols-2 gap-5">
+<div class="card p-5"><h2 class="font-black text-sm mb-3">OEE Trend</h2><div class="h-64"><canvas id="oeeChart"></canvas></div></div>
+<div class="card p-5"><h2 class="font-black text-sm mb-3">Daily Production</h2><div class="h-64"><canvas id="prodChart"></canvas></div></div>
+</div>
+<div class="card p-5"><div class="flex justify-between items-center mb-3"><h2 class="font-black text-sm">Recent Shifts</h2><button onclick="tab('shifts')" class="text-xs text-blue-600 font-bold">View all →</button></div><div class="table-wrap"><table class="w-full text-xs"><thead class="bg-slate-100 dark:bg-slate-800"><tr><th class="p-2 text-left">Date</th><th class="p-2">Shift</th><th class="p-2">Team</th><th class="p-2">Output</th><th class="p-2">Scrap</th><th class="p-2">OEE</th></tr></thead><tbody id="recent"></tbody></table></div></div>
+</section>
+
+<section id="shifts" class="tab hidden space-y-5">
+<div class="card p-5">
+<div class="flex justify-between items-center gap-3 mb-4"><div><h2 class="font-black">OEE & Shift Logs</h2><p class="text-xs text-slate-500">Weighted plant OEE. No fake averaging of shift percentages.</p></div><button onclick="openShift()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-black">+ Add Shift</button></div>
+<div class="grid sm:grid-cols-4 gap-2 mb-4">
+<input id="shiftSearch" class="input" placeholder="Search date/team/operator" oninput="renderShifts()">
+<select id="shiftFilter" class="input" onchange="renderShifts()"><option value="ALL">All shifts</option><option>Day</option><option>Night</option></select>
+<input id="fromDate" type="date" class="input" onchange="renderShifts()">
+<input id="toDate" type="date" class="input" onchange="renderShifts()">
+</div>
+<div class="table-wrap"><table class="w-full text-xs"><thead class="bg-slate-100 dark:bg-slate-800"><tr><th class="p-2 text-left">Date</th><th>Shift</th><th>Team</th><th>Planned</th><th>Operating</th><th>Output</th><th>Good</th><th>Scrap</th><th>Down</th><th>OEE</th><th>Action</th></tr></thead><tbody id="shiftRows"></tbody></table></div>
+</div>
+</section>
+
+<section id="production" class="tab hidden space-y-5">
+<div class="card p-5"><h2 class="font-black mb-1">Production Records</h2><p class="text-xs text-slate-500 mb-4">Profile-level production linked to each shift.</p>
+<div class="table-wrap"><table class="w-full text-xs"><thead class="bg-slate-100 dark:bg-slate-800"><tr><th class="p-2 text-left">Date</th><th>Shift</th><th>Profile</th><th>Produced</th><th>Reject</th><th>Good</th></tr></thead><tbody id="prodRows"></tbody></table></div></div>
+</section>
+
+<section id="profiles" class="tab hidden space-y-5">
+<div class="card p-5"><div class="flex justify-between items-center mb-4"><div><h2 class="font-black">CNC Profiles</h2><p class="text-xs text-slate-500">Cycle-time master data for CNC 5000 planning and OEE.</p></div><button onclick="openProfile()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-black">+ Add Profile</button></div>
+<input id="profileSearch" class="input mb-4" placeholder="Search profile..." oninput="renderProfiles()">
+<div class="table-wrap"><table class="w-full text-xs"><thead class="bg-slate-100 dark:bg-slate-800"><tr><th class="p-2 text-left">Profile</th><th>Description</th><th>Cycle</th><th>Feed</th><th>Tooling</th><th>Action</th></tr></thead><tbody id="profileRows"></tbody></table></div></div>
+</section>
+
+<section id="tools" class="tab hidden space-y-5">
+<div class="card p-5"><div class="flex justify-between items-center mb-4"><div><h2 class="font-black">Tool Inventory</h2><p class="text-xs text-slate-500">Based on the Alumex CNC tool inventory structure.</p></div><button onclick="openTool()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-black">+ Add Tool</button></div>
+<div class="grid sm:grid-cols-3 gap-2 mb-4"><input id="toolSearch" class="input" placeholder="Search tool..." oninput="renderTools()"><select id="toolCat" class="input" onchange="renderTools()"><option value="ALL">All categories</option><option>End Mill</option><option>Ball Nose End Mill</option><option>Drill Bit</option><option>Tap Bit</option><option>Chamfer Tool</option><option>Face Mill</option></select><button onclick="createRequisition()" class="bg-slate-900 text-white rounded-lg text-xs font-black">Create Restock List</button></div>
+<div class="table-wrap"><table class="w-full text-xs"><thead class="bg-slate-100 dark:bg-slate-800"><tr><th class="p-2 text-left">Category</th><th>Diameter</th><th>Description</th><th>Stock</th><th>Location</th><th>Action</th></tr></thead><tbody id="toolRows"></tbody></table></div></div>
+</section>
+
+<section id="reports" class="tab hidden space-y-5">
+<div class="card p-5"><h2 class="font-black mb-4">Reports & Export</h2><div class="grid sm:grid-cols-3 gap-3"><button onclick="exportExcel()" class="bg-emerald-600 text-white rounded-lg px-4 py-3 text-xs font-black">Export Excel</button><button onclick="exportPDF()" class="bg-rose-600 text-white rounded-lg px-4 py-3 text-xs font-black">Export PDF</button><button onclick="printReport()" class="bg-slate-900 text-white rounded-lg px-4 py-3 text-xs font-black">Print Report</button></div></div>
+</section>
+
+<section id="recovery" class="tab hidden space-y-5">
+<div class="card p-5"><h2 class="font-black mb-1">Recovery Vault</h2><p class="text-xs text-slate-500 mb-4">Soft-deleted profiles, shifts and tools remain recoverable.</p>
+<div class="grid lg:grid-cols-3 gap-4"><div><h3 class="font-bold text-sm mb-2">Profiles</h3><div id="trashProfiles" class="space-y-2"></div></div><div><h3 class="font-bold text-sm mb-2">Tools</h3><div id="trashTools" class="space-y-2"></div></div><div><h3 class="font-bold text-sm mb-2">Shifts</h3><div id="trashShifts" class="space-y-2"></div></div></div></div>
+</section>
+
+<section id="setup" class="tab hidden space-y-5">
+<div class="card p-5"><h2 class="font-black">Supabase Connection</h2><div class="grid md:grid-cols-2 gap-4 mt-4"><div><p class="text-[10px] font-black uppercase text-slate-400">Project</p><p class="font-mono text-sm mt-1">embgwbcdiscfnsjsceei</p></div><div><p class="text-[10px] font-black uppercase text-slate-400">URL</p><p class="font-mono text-sm mt-1 break-all">https://embgwbcdiscfnsjsceei.supabase.co</p></div></div><div class="mt-5 p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs"><b>Important:</b> This frontend contains only the publishable key. Never put the Postgres password or service-role key in this HTML.</div><div class="mt-4 p-4 bg-slate-950 text-slate-100 rounded-xl text-xs font-mono overflow-auto">supabase login
+supabase init
+supabase link --project-ref embgwbcdiscfnsjsceei
+supabase functions deploy cnc-webhook
+supabase secrets set CNC_WEBHOOK_SECRET="YOUR_LONG_RANDOM_SECRET"</div></div>
+</section>
+</div>
+
+<div id="modal" class="hidden fixed inset-0 z-50 modal p-4 items-center justify-center"><div class="card modal-panel w-full max-w-2xl p-5"><div class="flex justify-between"><h2 id="modalTitle" class="font-black">Form</h2><button onclick="closeModal()" class="text-2xl">×</button></div><div id="modalBody" class="mt-4"></div></div></div>
+
+<script src="app.js" defer></script>
+
+</body>
+</html>

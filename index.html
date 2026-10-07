@@ -1,119 +1,114 @@
 <!doctype html>
-<html lang="en" class="light">
+<html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ALUMEX PLC | CNC 5000 Operations Intelligence</title>
-<meta name="theme-color" content="#0f172a">
-<meta name="description" content="ALUMEX PLC CNC 5000 Operations Intelligence, OEE, production, tools and reporting system">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<script>tailwind={config:{darkMode:"class"}}</script>
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
-
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#07111f">
+<meta name="description" content="ALUMEX PLC CNC 5000 Industrial OEE and Production Intelligence System">
+<title>ALUMEX PLC | CNC 5000 OEE</title>
 <link rel="stylesheet" href="style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body class="bg-slate-50 text-slate-800 dark:bg-slate-950 dark:text-slate-100 min-h-screen">
-<div id="appLoading" class="fixed inset-0 z-[90] hidden items-center justify-center bg-slate-950/40 backdrop-blur-sm"><div class="bg-white dark:bg-slate-900 rounded-2xl px-5 py-4 shadow-2xl flex items-center gap-3 text-sm font-bold"><span class="animate-spin w-5 h-5 rounded-full border-2 border-slate-300 border-t-blue-600"></span><span>Loading CNC 5000 data...</span></div></div>
-<div id="toast" class="fixed z-[100] right-4 bottom-4 translate-y-24 opacity-0 toast px-4 py-3 rounded-xl shadow-2xl text-sm font-bold text-white bg-emerald-600">Saved</div>
-
-<header class="sticky top-0 z-40 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-b border-slate-200 dark:border-slate-800">
-<div class="max-w-[1500px] mx-auto px-4 py-3 flex justify-between items-center gap-3">
-  <div class="flex items-center gap-3">
-    <div class="w-11 h-11 rounded-xl bg-slate-900 text-white flex items-center justify-center font-black">5K</div>
-    <div><h1 class="font-black text-base">CNC 5000</h1><p class="text-[11px] text-blue-600 font-bold">ALUMEX PLC • Component Plant</p></div>
-  </div>
-  <div class="flex items-center gap-2">
-    <span id="status" class="px-3 py-1.5 rounded-full bg-amber-50 text-amber-700 text-xs font-bold"><span class="status-dot"></span>Connecting...</span>
-    <button id="theme" class="px-3 py-2 rounded-lg bg-slate-100 dark:bg-slate-800">🌙</button>
-  </div>
-</div>
+<body>
+<div id="boot" class="boot"><div class="boot-box"><div class="spinner"></div><div><b>CNC 5000</b><span>Connecting to operations database…</span></div></div></div>
+<div id="toast" class="toast"></div>
+<header class="topbar">
+  <div class="brand"><div class="machine-badge">5K</div><div><div class="brand-title">CNC 5000</div><div class="brand-sub">ALUMEX PLC <i>•</i> Component Plant</div></div></div>
+  <div class="top-actions"><span id="status" class="status connecting"><i></i>Connecting</span><button id="theme" class="icon-btn" aria-label="Toggle theme">☾</button></div>
 </header>
+<div class="app-shell">
+  <aside class="sidebar">
+    <div class="nav-caption">OPERATIONS</div>
+    <button class="navbtn active" data-tab="dashboard"><span>▦</span> Dashboard</button>
+    <button class="navbtn" data-tab="machine"><span>◈</span> Machine</button>
+    <button class="navbtn" data-tab="shifts"><span>◒</span> OEE & Shifts</button>
+    <button class="navbtn" data-tab="production"><span>▤</span> Production</button>
+    <button class="navbtn" data-tab="downtime"><span>◴</span> Downtime</button>
+    <div class="nav-caption">CONTROL</div>
+    <button class="navbtn" data-tab="profiles"><span>⚙</span> CNC Profiles</button>
+    <button class="navbtn" data-tab="tools"><span>◇</span> Tool Inventory</button>
+    <button class="navbtn" data-tab="reports"><span>▥</span> Reports</button>
+    <button class="navbtn" data-tab="recovery"><span>↺</span> Recovery</button>
+    <button class="navbtn" data-tab="setup"><span>⌘</span> Setup</button>
+    <div class="sidebar-foot"><b>OEE SYSTEM</b><span>Industrial operations control</span></div>
+  </aside>
+  <main class="main">
+    <div class="mobile-nav"><select id="mobileTab"><option value="dashboard">Dashboard</option><option value="machine">Machine</option><option value="shifts">OEE & Shifts</option><option value="production">Production</option><option value="downtime">Downtime</option><option value="profiles">CNC Profiles</option><option value="tools">Tool Inventory</option><option value="reports">Reports</option><option value="recovery">Recovery</option><option value="setup">Setup</option></select></div>
 
-<div class="max-w-[1500px] mx-auto p-4">
-<nav class="nav-scroll flex gap-2 mb-5 pb-1">
-<button class="navbtn active px-3 py-3 rounded-xl text-xs font-black" data-tab="dashboard">📊 Dashboard</button>
-<button class="navbtn px-3 py-3 rounded-xl text-xs font-black" data-tab="shifts">⚡ OEE & Shifts</button>
-<button class="navbtn px-3 py-3 rounded-xl text-xs font-black" data-tab="production">📋 Production</button>
-<button class="navbtn px-3 py-3 rounded-xl text-xs font-black" data-tab="profiles">⚙ Profiles</button>
-<button class="navbtn px-3 py-3 rounded-xl text-xs font-black" data-tab="tools">🛠 Tools</button>
-<button class="navbtn px-3 py-3 rounded-xl text-xs font-black" data-tab="reports">📑 Reports</button>
-<button class="navbtn px-3 py-3 rounded-xl text-xs font-black" data-tab="recovery">🗑 Recovery</button>
-<button class="navbtn px-3 py-3 rounded-xl text-xs font-black" data-tab="setup">🔗 Setup</button>
-</nav>
+    <section id="dashboard" class="tab">
+      <div class="page-head"><div><div class="eyebrow">OPERATIONS INTELLIGENCE</div><h1>Production Dashboard</h1><p>Real-time OEE view for CNC 5000 manufacturing operations.</p></div><button class="primary" onclick="openShift()">＋ Record Shift</button></div>
+      <div class="kpi-grid">
+        <article class="kpi-card accent-green"><div class="kpi-label">PLANT OEE</div><div id="kOee" class="kpi-value">0.0%</div><div id="kApq" class="kpi-meta">A 0.0% · P 0.0% · Q 0.0%</div></article>
+        <article class="kpi-card accent-blue"><div class="kpi-label">GOOD OUTPUT</div><div id="kOutput" class="kpi-value">0</div><div id="kGood" class="kpi-meta">Total 0 · Scrap 0</div></article>
+        <article class="kpi-card accent-cyan"><div class="kpi-label">ACTIVE SHIFTS</div><div id="kShifts" class="kpi-value">0</div><div class="kpi-meta">Recorded production shifts</div></article>
+        <article class="kpi-card accent-red"><div class="kpi-label">DOWNTIME</div><div id="kDown" class="kpi-value">0m</div><div class="kpi-meta">Recorded machine downtime</div></article>
+        <article class="kpi-card accent-amber"><div class="kpi-label">TOOL ALERTS</div><div id="kTools" class="kpi-value">0</div><div class="kpi-meta">At / below minimum stock</div></article>
+      </div>
+      <div class="grid-2">
+        <article class="panel chart-panel"><div class="panel-head"><div><h2>OEE Trend</h2><span>Last 14 production dates</span></div><span class="chip blue">OEE</span></div><div class="chart-box"><canvas id="oeeChart"></canvas><div id="oeeEmpty" class="chart-empty">No shift data available yet.</div></div></article>
+        <article class="panel chart-panel"><div class="panel-head"><div><h2>Good Production</h2><span>Daily accepted output</span></div><span class="chip green">GOOD PCS</span></div><div class="chart-box"><canvas id="prodChart"></canvas><div id="prodEmpty" class="chart-empty">No production data available yet.</div></div></article>
+      </div>
+      <div class="grid-2 lower-grid">
+        <article class="panel"><div class="panel-head"><div><h2>OEE Components</h2><span>Weighted plant calculation</span></div></div><div class="component-bars"><div><div><b>Availability</b><span id="barA">0%</span></div><i><em id="barAFill"></em></i></div><div><div><b>Performance</b><span id="barP">0%</span></div><i><em id="barPFill"></em></i></div><div><div><b>Quality</b><span id="barQ">0%</span></div><i><em id="barQFill"></em></i></div></div></article>
+        <article class="panel"><div class="panel-head"><div><h2>Recent Shifts</h2><span>Latest recorded activity</span></div><button class="link-btn" onclick="tab('shifts')">View all →</button></div><div class="table-wrap"><table><thead><tr><th>Date</th><th>Shift</th><th>Team</th><th>Output</th><th>Scrap</th><th>OEE</th></tr></thead><tbody id="recent"></tbody></table></div></article>
+      </div>
+    </section>
 
-<section id="dashboard" class="tab space-y-5">
-<div class="grid grid-cols-2 lg:grid-cols-5 gap-3">
-<div class="card p-4 kpi"><p class="text-[10px] font-black text-slate-400 uppercase">Plant OEE</p><p id="kOee" class="text-3xl font-black text-emerald-600 mt-1">0.0%</p><p id="kApq" class="text-[10px] text-slate-500 mt-1">A - | P - | Q -</p></div>
-<div class="card p-4 kpi"><p class="text-[10px] font-black text-slate-400 uppercase">Total Output</p><p id="kOutput" class="text-3xl font-black text-blue-600 mt-1">0</p><p id="kGood" class="text-[10px] text-slate-500 mt-1">Good 0 • Scrap 0</p></div>
-<div class="card p-4 kpi"><p class="text-[10px] font-black text-slate-400 uppercase">Shifts</p><p id="kShifts" class="text-3xl font-black mt-1">0</p><p class="text-[10px] text-slate-500 mt-1">Active records</p></div>
-<div class="card p-4 kpi"><p class="text-[10px] font-black text-slate-400 uppercase">Downtime</p><p id="kDown" class="text-3xl font-black text-rose-600 mt-1">0m</p><p class="text-[10px] text-slate-500 mt-1">Recorded downtime</p></div>
-<div class="card p-4 kpi"><p class="text-[10px] font-black text-slate-400 uppercase">Critical Tools</p><p id="kTools" class="text-3xl font-black text-amber-600 mt-1">0</p><p class="text-[10px] text-slate-500 mt-1">At/below minimum stock</p></div>
-</div>
-<div class="grid lg:grid-cols-2 gap-5">
-<div class="card p-5"><h2 class="font-black text-sm mb-3">OEE Trend</h2><div class="h-64"><canvas id="oeeChart"></canvas></div></div>
-<div class="card p-5"><h2 class="font-black text-sm mb-3">Daily Production</h2><div class="h-64"><canvas id="prodChart"></canvas></div></div>
-</div>
-<div class="card p-5"><div class="flex justify-between items-center mb-3"><h2 class="font-black text-sm">Recent Shifts</h2><button onclick="tab('shifts')" class="text-xs text-blue-600 font-bold">View all →</button></div><div class="table-wrap"><table class="w-full text-xs"><thead class="bg-slate-100 dark:bg-slate-800"><tr><th class="p-2 text-left">Date</th><th class="p-2">Shift</th><th class="p-2">Team</th><th class="p-2">Output</th><th class="p-2">Scrap</th><th class="p-2">OEE</th></tr></thead><tbody id="recent"></tbody></table></div></div>
-</section>
+    <section id="machine" class="tab hidden">
+      <div class="page-head"><div><div class="eyebrow">CNC ASSET</div><h1>Machine Overview</h1><p>CNC 5000 operating context and production control.</p></div><span class="machine-state"><i></i> System online</span></div>
+      <div class="machine-grid">
+        <article class="panel machine-hero"><div class="machine-illustration"><div class="cnc-top"></div><div class="cnc-door"><div class="window"></div><div class="table-line"></div></div><div class="cnc-base"></div></div><div class="machine-copy"><span class="chip green">CONNECTED DATABASE</span><h2>ALUMEX CNC 5000</h2><p>Vertical CNC production asset for component machining. This screen separates confirmed database information from live machine telemetry that has not yet been connected.</p><div class="spec-grid"><div><span>Asset</span><b>CNC 5000</b></div><div><span>Plant</span><b>Component Plant</b></div><div><span>Shift model</span><b>12 h / 630 min</b></div><div><span>Database</span><b>Supabase PostgreSQL</b></div></div></div></article>
+        <article class="panel"><div class="panel-head"><div><h2>Machine Control Data</h2><span>Ready for CNC/PLC integration</span></div></div><div class="telemetry-grid"><div><span>Machine state</span><b>DATABASE ONLINE</b></div><div><span>Program / Profile</span><b id="machineProfile">—</b></div><div><span>Last production</span><b id="machineLast">—</b></div><div><span>Current shift</span><b id="machineShift">—</b></div><div><span>Operating time</span><b id="machineOperating">0 min</b></div><div><span>Downtime</span><b id="machineDowntime">0 min</b></div></div><div class="notice"><b>Telemetry integration point</b><span>Connect CNC/PLC signals through the deployed Edge Function when machine-side data is available. No fake live values are shown here.</span></div></article>
+      </div>
+    </section>
 
-<section id="shifts" class="tab hidden space-y-5">
-<div class="card p-5">
-<div class="flex justify-between items-center gap-3 mb-4"><div><h2 class="font-black">OEE & Shift Logs</h2><p class="text-xs text-slate-500">Weighted plant OEE. No fake averaging of shift percentages.</p></div><button onclick="openShift()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-black">+ Add Shift</button></div>
-<div class="grid sm:grid-cols-4 gap-2 mb-4">
-<input id="shiftSearch" class="input" placeholder="Search date/team/operator" oninput="renderShifts()">
-<select id="shiftFilter" class="input" onchange="renderShifts()"><option value="ALL">All shifts</option><option>Day</option><option>Night</option></select>
-<input id="fromDate" type="date" class="input" onchange="renderShifts()">
-<input id="toDate" type="date" class="input" onchange="renderShifts()">
-</div>
-<div class="table-wrap"><table class="w-full text-xs"><thead class="bg-slate-100 dark:bg-slate-800"><tr><th class="p-2 text-left">Date</th><th>Shift</th><th>Team</th><th>Planned</th><th>Operating</th><th>Output</th><th>Good</th><th>Scrap</th><th>Down</th><th>OEE</th><th>Action</th></tr></thead><tbody id="shiftRows"></tbody></table></div>
-</div>
-</section>
+    <section id="shifts" class="tab hidden">
+      <div class="page-head"><div><div class="eyebrow">PERFORMANCE</div><h1>OEE & Shift Logs</h1><p>Weighted plant OEE. Availability, Performance and Quality are calculated from shift data.</p></div><button class="primary" onclick="openShift()">＋ Add Shift</button></div>
+      <article class="panel"><div class="filter-grid"><input id="shiftSearch" class="input" placeholder="Search date, team or operator" oninput="renderShifts()"><select id="shiftFilter" class="input" onchange="renderShifts()"><option value="ALL">All shifts</option><option>Day</option><option>Night</option></select><input id="fromDate" type="date" class="input" onchange="renderShifts()"><input id="toDate" type="date" class="input" onchange="renderShifts()"></div><div class="table-wrap"><table><thead><tr><th>Date</th><th>Shift</th><th>Team</th><th>Planned</th><th>Operating</th><th>Output</th><th>Good</th><th>Scrap</th><th>Down</th><th>OEE</th><th>Action</th></tr></thead><tbody id="shiftRows"></tbody></table></div></article>
+    </section>
 
-<section id="production" class="tab hidden space-y-5">
-<div class="card p-5"><h2 class="font-black mb-1">Production Records</h2><p class="text-xs text-slate-500 mb-4">Profile-level production linked to each shift.</p>
-<div class="table-wrap"><table class="w-full text-xs"><thead class="bg-slate-100 dark:bg-slate-800"><tr><th class="p-2 text-left">Date</th><th>Shift</th><th>Profile</th><th>Produced</th><th>Reject</th><th>Good</th></tr></thead><tbody id="prodRows"></tbody></table></div></div>
-</section>
+    <section id="production" class="tab hidden">
+      <div class="page-head"><div><div class="eyebrow">OUTPUT CONTROL</div><h1>Production Records</h1><p>Profile-level production linked to each CNC shift.</p></div><button class="primary" onclick="openShift()">＋ Record Production</button></div>
+      <article class="panel"><div class="summary-strip"><div><span>Total records</span><b id="prodCount">0</b></div><div><span>Total produced</span><b id="prodTotal">0</b></div><div><span>Good parts</span><b id="prodGood">0</b></div><div><span>Scrap</span><b id="prodScrap">0</b></div></div><div class="table-wrap"><table><thead><tr><th>Date</th><th>Shift</th><th>Profile</th><th>Produced</th><th>Reject</th><th>Good</th></tr></thead><tbody id="prodRows"></tbody></table></div></article>
+    </section>
 
-<section id="profiles" class="tab hidden space-y-5">
-<div class="card p-5"><div class="flex justify-between items-center mb-4"><div><h2 class="font-black">CNC Profiles</h2><p class="text-xs text-slate-500">Cycle-time master data for CNC 5000 planning and OEE.</p></div><button onclick="openProfile()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-black">+ Add Profile</button></div>
-<input id="profileSearch" class="input mb-4" placeholder="Search profile..." oninput="renderProfiles()">
-<div class="table-wrap"><table class="w-full text-xs"><thead class="bg-slate-100 dark:bg-slate-800"><tr><th class="p-2 text-left">Profile</th><th>Description</th><th>Cycle</th><th>Feed</th><th>Tooling</th><th>Action</th></tr></thead><tbody id="profileRows"></tbody></table></div></div>
-</section>
+    <section id="downtime" class="tab hidden">
+      <div class="page-head"><div><div class="eyebrow">LOSS ANALYSIS</div><h1>Downtime Analysis</h1><p>Machine losses recorded against CNC 5000 shifts.</p></div></div>
+      <div class="grid-2"><article class="panel chart-panel"><div class="panel-head"><div><h2>Downtime by Reason</h2><span>Minutes recorded in database</span></div></div><div class="chart-box"><canvas id="downChart"></canvas><div id="downEmpty" class="chart-empty">No downtime records available.</div></div></article><article class="panel"><div class="panel-head"><div><h2>Downtime Log</h2><span>Latest events</span></div></div><div class="table-wrap"><table><thead><tr><th>Date</th><th>Shift</th><th>Reason</th><th>Minutes</th></tr></thead><tbody id="downRows"></tbody></table></div></article></div>
+    </section>
 
-<section id="tools" class="tab hidden space-y-5">
-<div class="card p-5"><div class="flex justify-between items-center mb-4"><div><h2 class="font-black">Tool Inventory</h2><p class="text-xs text-slate-500">Based on the Alumex CNC tool inventory structure.</p></div><button onclick="openTool()" class="bg-blue-600 text-white px-4 py-2 rounded-lg text-xs font-black">+ Add Tool</button></div>
-<div class="grid sm:grid-cols-3 gap-2 mb-4"><input id="toolSearch" class="input" placeholder="Search tool..." oninput="renderTools()"><select id="toolCat" class="input" onchange="renderTools()"><option value="ALL">All categories</option><option>End Mill</option><option>Ball Nose End Mill</option><option>Drill Bit</option><option>Tap Bit</option><option>Chamfer Tool</option><option>Face Mill</option></select><button onclick="createRequisition()" class="bg-slate-900 text-white rounded-lg text-xs font-black">Create Restock List</button></div>
-<div class="table-wrap"><table class="w-full text-xs"><thead class="bg-slate-100 dark:bg-slate-800"><tr><th class="p-2 text-left">Category</th><th>Diameter</th><th>Description</th><th>Stock</th><th>Location</th><th>Action</th></tr></thead><tbody id="toolRows"></tbody></table></div></div>
-</section>
+    <section id="profiles" class="tab hidden">
+      <div class="page-head"><div><div class="eyebrow">MASTER DATA</div><h1>CNC Profiles</h1><p>Cycle-time and tooling master data for CNC 5000 OEE calculations.</p></div><button class="primary" onclick="openProfile()">＋ Add Profile</button></div>
+      <article class="panel"><input id="profileSearch" class="input search" placeholder="Search profile or description" oninput="renderProfiles()"><div class="table-wrap"><table><thead><tr><th>Profile</th><th>Description</th><th>Cycle</th><th>Feed / Speed</th><th>Tooling</th><th>Action</th></tr></thead><tbody id="profileRows"></tbody></table></div></article>
+    </section>
 
-<section id="reports" class="tab hidden space-y-5">
-<div class="card p-5"><h2 class="font-black mb-4">Reports & Export</h2><div class="grid sm:grid-cols-3 gap-3"><button onclick="exportExcel()" class="bg-emerald-600 text-white rounded-lg px-4 py-3 text-xs font-black">Export Excel</button><button onclick="exportPDF()" class="bg-rose-600 text-white rounded-lg px-4 py-3 text-xs font-black">Export PDF</button><button onclick="printReport()" class="bg-slate-900 text-white rounded-lg px-4 py-3 text-xs font-black">Print Report</button></div></div>
-</section>
+    <section id="tools" class="tab hidden">
+      <div class="page-head"><div><div class="eyebrow">TOOL CONTROL</div><h1>Tool Inventory</h1><p>Stock visibility, minimum levels and replenishment control.</p></div><button class="primary" onclick="openTool()">＋ Add Tool</button></div>
+      <article class="panel"><div class="filter-grid tools-filter"><input id="toolSearch" class="input" placeholder="Search tool, diameter or location" oninput="renderTools()"><select id="toolCat" class="input" onchange="renderTools()"><option value="ALL">All categories</option><option>End Mill</option><option>Ball Nose End Mill</option><option>Drill Bit</option><option>Tap Bit</option><option>Chamfer Tool</option><option>Face Mill</option></select><button onclick="createRequisition()" class="secondary">Create Restock Requisition</button></div><div class="table-wrap"><table><thead><tr><th>Category</th><th>Size</th><th>Description</th><th>Stock</th><th>Minimum</th><th>Location</th><th>Action</th></tr></thead><tbody id="toolRows"></tbody></table></div></article>
+    </section>
 
-<section id="recovery" class="tab hidden space-y-5">
-<div class="card p-5"><h2 class="font-black mb-1">Recovery Vault</h2><p class="text-xs text-slate-500 mb-4">Soft-deleted profiles, shifts and tools remain recoverable.</p>
-<div class="grid lg:grid-cols-3 gap-4"><div><h3 class="font-bold text-sm mb-2">Profiles</h3><div id="trashProfiles" class="space-y-2"></div></div><div><h3 class="font-bold text-sm mb-2">Tools</h3><div id="trashTools" class="space-y-2"></div></div><div><h3 class="font-bold text-sm mb-2">Shifts</h3><div id="trashShifts" class="space-y-2"></div></div></div></div>
-</section>
+    <section id="reports" class="tab hidden">
+      <div class="page-head"><div><div class="eyebrow">DOCUMENTATION</div><h1>Reports & Export</h1><p>Generate production-ready operational reports from the current database.</p></div></div>
+      <article class="panel report-grid"><button class="report-card excel" onclick="exportExcel()"><b>▣ Excel</b><span>Shift OEE, profiles and tool inventory</span></button><button class="report-card pdf" onclick="exportPDF()"><b>▤ PDF</b><span>Management-ready OEE shift report</span></button><button class="report-card print" onclick="printReport()"><b>▥ Print</b><span>Print the current operational report</span></button></article>
+      <article class="panel report-notes"><h2>OEE reporting standard</h2><p>Plant OEE is calculated from aggregated time, production and quality values rather than averaging individual shift OEE percentages.</p><div class="formula-grid"><div><b>Availability</b><span>Operating ÷ Planned</span></div><div><b>Performance</b><span>Ideal cycle × output ÷ Operating time</span></div><div><b>Quality</b><span>Good ÷ Total output</span></div><div><b>OEE</b><span>Availability × Performance × Quality</span></div></div></article>
+    </section>
 
-<section id="setup" class="tab hidden space-y-5">
-<div class="card p-5"><h2 class="font-black">Supabase Connection</h2><div class="grid md:grid-cols-2 gap-4 mt-4"><div><p class="text-[10px] font-black uppercase text-slate-400">Project</p><p class="font-mono text-sm mt-1">embgwbcdiscfnsjsceei</p></div><div><p class="text-[10px] font-black uppercase text-slate-400">URL</p><p class="font-mono text-sm mt-1 break-all">https://embgwbcdiscfnsjsceei.supabase.co</p></div></div><div class="mt-5 p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs"><b>Important:</b> This frontend contains only the publishable key. Never put the Postgres password or service-role key in this HTML.</div><div class="mt-4 p-4 bg-slate-950 text-slate-100 rounded-xl text-xs font-mono overflow-auto">supabase login
+    <section id="recovery" class="tab hidden">
+      <div class="page-head"><div><div class="eyebrow">DATA RECOVERY</div><h1>Recovery Vault</h1><p>Soft-deleted profiles, tools and shifts remain recoverable.</p></div></div>
+      <article class="panel"><div class="recovery-grid"><div><h3>Profiles</h3><div id="trashProfiles" class="stack"></div></div><div><h3>Tools</h3><div id="trashTools" class="stack"></div></div><div><h3>Shifts</h3><div id="trashShifts" class="stack"></div></div></div></article>
+    </section>
+
+    <section id="setup" class="tab hidden">
+      <div class="page-head"><div><div class="eyebrow">SYSTEM</div><h1>Setup & Integration</h1><p>Connection information and deployment notes.</p></div></div>
+      <article class="panel"><div class="connection-grid"><div><span>PROJECT</span><b>embgwbcdiscfnsjsceei</b></div><div><span>URL</span><b>https://embgwbcdiscfnsjsceei.supabase.co</b></div></div><div class="notice warning"><b>Security</b><span>The browser uses only the Supabase publishable key. Never place the PostgreSQL password or service-role key in frontend files.</span></div><pre>supabase login
 supabase init
 supabase link --project-ref embgwbcdiscfnsjsceei
 supabase functions deploy cnc-webhook
-supabase secrets set CNC_WEBHOOK_SECRET="YOUR_LONG_RANDOM_SECRET"</div></div>
-</section>
+supabase secrets set CNC_WEBHOOK_SECRET="YOUR_LONG_RANDOM_SECRET"</pre><div class="setup-grid"><div><b>Shift model</b><span>Day 06:00–18:00 / Night 18:00–06:00</span></div><div><b>Planned break</b><span>90 minutes per shift</span></div><div><b>Planned production time</b><span>630 minutes per shift</span></div><div><b>Webhook</b><span>/functions/v1/cnc-webhook</span></div></div></article>
+    </section>
+  </main>
 </div>
-
-<div id="modal" class="hidden fixed inset-0 z-50 modal p-4 items-center justify-center"><div class="card modal-panel w-full max-w-2xl p-5"><div class="flex justify-between"><h2 id="modalTitle" class="font-black">Form</h2><button onclick="closeModal()" class="text-2xl">×</button></div><div id="modalBody" class="mt-4"></div></div></div>
-
+<div id="modal" class="modal hidden"><div class="modal-card"><div class="modal-head"><h2 id="modalTitle">Form</h2><button onclick="closeModal()">×</button></div><div id="modalBody"></div></div></div>
 <script src="app.js" defer></script>
-
 </body>
 </html>

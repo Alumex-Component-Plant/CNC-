@@ -2343,8 +2343,49 @@ async function deleteProduction(id){
     );
 
 
+  // Recalculate the linked shift totals after deletion.
+  // This keeps OEE, dashboard and reports consistent with the records.
+  const deleted = productions.find(x => x.id === id);
+  const linkedShiftId = num(deleted?.shift_id);
+
+  if(linkedShiftId){
+    const remaining = productions.filter(
+      x => x.shift_id === linkedShiftId && x.id !== id
+    );
+
+    const totalProduced = remaining.reduce(
+      (sum,x) => sum + num(x.produced),
+      0
+    );
+
+    const totalRejected = remaining.reduce(
+      (sum,x) => sum + num(x.rejected),
+      0
+    );
+
+    const idealValues = remaining
+      .map(x => num(x.ideal_cycle_seconds))
+      .filter(v => v > 0);
+
+    const idealCycle = idealValues.length
+      ? idealValues[idealValues.length - 1]
+      : 0;
+
+    const u = await db
+      .from("shifts")
+      .update({
+        total_produced: totalProduced,
+        rejected: totalRejected,
+        ideal_cycle_seconds: idealCycle
+      })
+      .eq("id", linkedShiftId);
+
+    if(u.error)
+      return err(u.error, "Recalculate shift after production deletion");
+  }
+
   toast(
-    "Production record deleted"
+    "Production record deleted and shift totals recalculated"
   );
 
   load();
@@ -2530,9 +2571,13 @@ async function saveDowntime(e){
 
 
   const planned=
-    num(
-      shift?.planned_minutes
-    )||630;
+    Math.max(
+      0,
+      num(
+        shift?.planned_time_min ??
+        shift?.planned_minutes
+      )
+    );
 
 
   const operating=
@@ -2634,9 +2679,13 @@ async function deleteDowntime(id){
 
 
   const planned=
-    num(
-      shift?.planned_minutes
-    )||630;
+    Math.max(
+      0,
+      num(
+        shift?.planned_time_min ??
+        shift?.planned_minutes
+      )
+    );
 
 
   const operating=
@@ -3094,25 +3143,26 @@ async function stock(id,delta){
     );
 
 
-  await db
+  const movement = await db
     .from("tool_stock_movements")
     .insert({
-
-      tool_id:
-        id,
-
+      tool_id: id,
       delta,
-
-      stock_after:
-        n,
-
-      reason:
-        delta>0
-          ?"Manual stock increase"
-          :"Manual stock decrease"
-
+      stock_after: n,
+      reason: delta > 0
+        ? "Manual stock increase"
+        : "Manual stock decrease"
     });
 
+  if(movement.error){
+    // Best-effort rollback so the stock quantity and movement ledger stay aligned.
+    await db
+      .from("cnc_tool_bits")
+      .update({stock: num(t.stock)})
+      .eq("id", id);
+
+    return err(movement.error, "Stock movement");
+  }
 
   toast(
     "Stock updated"
